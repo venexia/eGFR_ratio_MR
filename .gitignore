@@ -44,3 +44,4 @@ raw/*
 data/*
 !data/README.md
 code/specify_paths.R
+.DS_Store
