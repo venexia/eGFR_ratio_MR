@@ -8,15 +8,18 @@ make_instrument <- function(
   clump_r2 = 0.001
 ) {
   # Load exposure data ----
+  message('Load exposure data')
 
   df <- vroom::vroom(data)
 
   # Add missing information ----
+  message('Add missing information')
 
   df$Phenotype <- phenotype
   df$samplesize <- as.numeric(samplesize)
 
   # Format exposure data ----
+  message('Format exposure data')
 
   df <- TwoSampleMR::format_data(
     df,
@@ -35,20 +38,23 @@ make_instrument <- function(
   )
 
   # Make instrument ----
+  message('Make instrument')
 
   df <- df[
-    df$pval.exposure <= p_threshold &
+    df$pval.exposure < p_threshold &
       nchar(df$effect_allele.exposure) == 1 &
       nchar(df$other_allele.exposure) == 1,
   ]
 
   # Clump instrument ----
+  message('Clump instrument')
 
   if (isTRUE(clump)) {
-    df <- TwoSampleMR::clump_data(df, clump_kb = 10000, clump_r2 = 0.001)
+    df <- TwoSampleMR::clump_data(df, clump_kb = clump_kb, clump_r2 = clump_r2)
   }
 
   # Return instrument ----
+  message('Return instrument')
 
   return(df)
 }

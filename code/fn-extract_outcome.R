@@ -1,14 +1,32 @@
-extract_outcome <- function(data, phenotype, samplesize, snps) {
+extract_outcome <- function(
+  snps,
+  data,
+  phenotype,
+  snp,
+  effect_allele,
+  other_allele,
+  eaf,
+  beta,
+  se,
+  pval,
+  samplesize,
+  chr,
+  pos
+) {
   # Load outcome data ----
+  message('Load outcome data')
   df <- vroom::vroom(data)
 
   # Add missing information ----
+  message('Add missing information')
 
   df$Phenotype <- phenotype
-  df$samplesize <- as.numeric(samplesize)
+
+  # Format data as an outcome ----
+  message('Format data as an outcome')
 
   df <- TwoSampleMR::format_data(
-    out,
+    df,
     type = "outcome",
     snps = snps,
     phenotype_col = "Phenotype",
@@ -25,6 +43,7 @@ extract_outcome <- function(data, phenotype, samplesize, snps) {
   )
 
   # Return outcome ----
+  message('Return outcome')
 
   return(df)
 }
