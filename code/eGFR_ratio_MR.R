@@ -6,31 +6,46 @@ lapply(
   source
 )
 
-# Make outcomes list ----
-message("Make outcomes list")
+# Make GWAS list ----
+message("Make GWAS list")
 
-source("code/outcomes.R")
+source("code/gwas.R")
 
 # Run make instrument function ----
 message("Run make instrument function")
 
-exp <- make_instrument(
-  data = "raw/eGFR11_cys_cre_ratio_imputed.txt.gz",
-  phenotype = "eGFRcys_eGFRcr",
-  samplesize = NA,
-  p_threshold = 5e-8,
-  clump = TRUE,
-  clump_kb = 10000,
-  clump_r2 = 0.001
-)
+exposures <- gwas[gwas$type == "exposure" & gwas$phenotype == "eGFR_ratio", ]
+
+for (i in 1:nrow(exposures)) {
+  exp <- make_instrument(
+    data = exposures[i, "data"],
+    phenotype = exposures[i, "phenotype"],
+    snp = exposures[i, "snp"],
+    effect_allele = exposures[i, "effect_allele"],
+    other_allele = exposures[i, "other_allele"],
+    eaf = exposures[i, "eaf"],
+    beta = exposures[i, "beta"],
+    se = exposures[i, "se"],
+    pval = exposures[i, "pval"],
+    samplesize = exposures[i, "samplesize"],
+    chr = exposures[i, "chr"],
+    pos = exposures[i, "pos"],
+    p_threshold = 5e-8,
+    clump = TRUE,
+    clump_kb = 10000,
+    clump_r2 = 0.001
+  )
+}
 
 # Extract outcome data ----
 message("Extract outcome data")
 
-for (i in 1:nrow(outcomes))
+outcomes <- gwas[gwas$type == "outcome", ]
+
+for (i in 1:nrow(outcomes)) {
   out <- extract_outcome(
-    snps = exp$SNP,
-    data = outcomes[i, "path"],
+    instrument = exp$SNP,
+    data = outcomes[i, "data"],
     phenotype = outcomes[i, "phenotype"],
     snp = outcomes[i, "snp"],
     effect_allele = outcomes[i, "effect_allele"],
@@ -43,6 +58,7 @@ for (i in 1:nrow(outcomes))
     chr = outcomes[i, "chr"],
     pos = outcomes[i, "pos"]
   )
+}
 
 # Harmonize data ----
 message("Harmonize data")

@@ -1,7 +1,16 @@
 make_instrument <- function(
   data,
   phenotype,
+  snp,
+  effect_allele,
+  other_allele,
+  eaf,
+  beta,
+  se,
+  pval,
   samplesize,
+  chr,
+  pos,
   p_threshold,
   clump = TRUE,
   clump_kb = 10000,
@@ -16,26 +25,42 @@ make_instrument <- function(
   message('Add missing information')
 
   df$Phenotype <- phenotype
-  df$samplesize <- as.numeric(samplesize)
 
   # Format exposure data ----
   message('Format exposure data')
 
-  df <- TwoSampleMR::format_data(
-    df,
-    type = "exposure",
-    phenotype_col = "Phenotype",
-    snp_col = "SNP",
-    effect_allele_col = "A1",
-    other_allele_col = "ALLELE0",
-    eaf_col = "A1FREQ",
-    beta_col = "BETA",
-    se_col = "SE",
-    pval_col = "P_BOLT_LMM_INF",
-    samplesize_col = "samplesize",
-    chr_col = "CHR",
-    pos_col = "BP"
-  )
+  if (samplesize == "") {
+    df <- TwoSampleMR::format_data(
+      df,
+      type = "exposure",
+      phenotype_col = phenotype,
+      snp_col = snp,
+      effect_allele_col = effect_allele,
+      other_allele_col = other_allele,
+      eaf_col = eaf,
+      beta_col = beta,
+      se_col = se,
+      pval_col = pval,
+      chr_col = chr,
+      pos_col = pos
+    )
+  } else {
+    df <- TwoSampleMR::format_data(
+      df,
+      type = "exposure",
+      phenotype_col = phenotype,
+      snp_col = snp,
+      effect_allele_col = effect_allele,
+      other_allele_col = other_allele,
+      eaf_col = eaf,
+      beta_col = beta,
+      se_col = se,
+      pval_col = pval,
+      samplesize_col = samplesize,
+      chr_col = chr,
+      pos_col = pos
+    )
+  }
 
   # Make instrument ----
   message('Make instrument')
