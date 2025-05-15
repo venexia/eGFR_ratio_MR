@@ -24,7 +24,7 @@ make_instrument <- function(
   # Add missing information ----
   message('Add missing information')
 
-  df$Phenotype <- phenotype
+  df$exposure <- phenotype
 
   # Format exposure data ----
   message('Format exposure data')
@@ -33,7 +33,7 @@ make_instrument <- function(
     df <- TwoSampleMR::format_data(
       df,
       type = "exposure",
-      phenotype_col = phenotype,
+      phenotype_col = "exposure",
       snp_col = snp,
       effect_allele_col = effect_allele,
       other_allele_col = other_allele,
@@ -48,7 +48,7 @@ make_instrument <- function(
     df <- TwoSampleMR::format_data(
       df,
       type = "exposure",
-      phenotype_col = phenotype,
+      phenotype_col = "exposure",
       snp_col = snp,
       effect_allele_col = effect_allele,
       other_allele_col = other_allele,

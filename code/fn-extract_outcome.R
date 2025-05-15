@@ -21,7 +21,7 @@ extract_outcome <- function(
   # Add missing information ----
   message('Add missing information')
 
-  df$Phenotype <- phenotype
+  df$outcome <- phenotype
 
   # Format data as an outcome ----
   message('Format data as an outcome')
@@ -30,12 +30,12 @@ extract_outcome <- function(
     df,
     type = "outcome",
     snps = instrument,
-    phenotype_col = phenotype,
+    phenotype_col = "outcome",
     snp_col = snp,
     effect_allele_col = effect_allele,
     other_allele_col = other_allele,
     eaf_col = eaf,
-    beta_col = beta(),
+    beta_col = beta,
     se_col = se,
     pval_col = pval,
     samplesize_col = samplesize,

@@ -11,53 +11,73 @@ message("Make GWAS list")
 
 source("code/gwas.R")
 
-# Run make instrument function ----
-message("Run make instrument function")
+# Make empty results dataframe ----
+message("Make empty results dataframe")
 
-exposures <- gwas[gwas$type == "exposure" & gwas$phenotype == "eGFR_ratio", ]
+results <- NULL
+
+# Prepare exposure GWAS ----
+message("Prepare exposure GWAS")
+
+exp <- NULL
+exposures <- gwas[gwas$type == "exposure", ]
+exposures <- exposures[1, ]
 
 for (i in 1:nrow(exposures)) {
-  exp <- make_instrument(
+  message(paste0("Preparing ", exposures[i, "phenotype"]))
+
+  tmp <- prepare_gwas(
+    type = "exposure",
     data = exposures[i, "data"],
     phenotype = exposures[i, "phenotype"],
-    snp = exposures[i, "snp"],
-    effect_allele = exposures[i, "effect_allele"],
-    other_allele = exposures[i, "other_allele"],
-    eaf = exposures[i, "eaf"],
-    beta = exposures[i, "beta"],
-    se = exposures[i, "se"],
-    pval = exposures[i, "pval"],
+    snp_col = exposures[i, "snp_col"],
+    effect_allele_col = exposures[i, "effect_allele_col"],
+    other_allele_col = exposures[i, "other_allele_col"],
+    eaf_col = exposures[i, "eaf_col"],
+    beta_col = exposures[i, "beta_col"],
+    se_col = exposures[i, "se_col"],
+    pval_col = exposures[i, "pval_col"],
+    samplesize_col = exposures[i, "samplesize_col"],
     samplesize = exposures[i, "samplesize"],
-    chr = exposures[i, "chr"],
-    pos = exposures[i, "pos"],
+    chr_col = exposures[i, "chr_col"],
+    pos_col = exposures[i, "pos_col"],
     p_threshold = 5e-8,
     clump = TRUE,
     clump_kb = 10000,
     clump_r2 = 0.001
   )
+
+  exp <- rbind(exp, tmp)
 }
 
-# Extract outcome data ----
-message("Extract outcome data")
+# Prepare outcome GWAS ----
+message("Prepare outcome GWAS")
 
+out <- NULL
 outcomes <- gwas[gwas$type == "outcome", ]
 
 for (i in 1:nrow(outcomes)) {
-  out <- extract_outcome(
-    instrument = exp$SNP,
+  message(paste0("Preparing "), outcomes[i, "phenotype"])
+
+  tmp <- prepare_gwas(
+    type = "outcome",
     data = outcomes[i, "data"],
     phenotype = outcomes[i, "phenotype"],
-    snp = outcomes[i, "snp"],
-    effect_allele = outcomes[i, "effect_allele"],
-    other_allele = outcomes[i, "other_allele"],
-    eaf = outcomes[i, "eaf"],
-    beta = outcomes[i, "beta"],
-    se = outcomes[i, "se"],
-    pval = outcomes[i, "pval"],
+    snp_col = outcomes[i, "snp_col"],
+    effect_allele_col = outcomes[i, "effect_allele_col"],
+    other_allele_col = outcomes[i, "other_allele_col"],
+    eaf_col = outcomes[i, "eaf_col"],
+    beta_col = outcomes[i, "beta_col"],
+    se_col = outcomes[i, "se_col"],
+    pval_col = outcomes[i, "pval_col"],
+    samplesize_col = outcomes[i, "samplesize_col"],
     samplesize = outcomes[i, "samplesize"],
-    chr = outcomes[i, "chr"],
-    pos = outcomes[i, "pos"]
+    chr_col = outcomes[i, "chr_col"],
+    pos_col = outcomes[i, "pos_col"],
+    instrument = exp$SNP
   )
+
+  out <- rbind(out, tmp)
 }
 
 # Harmonize data ----
@@ -74,3 +94,32 @@ mr <- TwoSampleMR::mr(dat)
 message("Record extra information")
 
 mr$nsnp.exposure <- nrow(exp)
+
+# Add to results dataframe ----
+message("Add to results dataframe")
+
+results <- rbind(results, mr)
+
+# Format results dataframe ----
+message("Format results dataframe")
+
+results$lci <- exp(results$b - qnorm(0.975) * results$se)
+results$uci <- exp(results$b + qnorm(0.975) * results$se)
+results$or <- exp(results$b)
+
+results <- results[, c(
+  "exposure",
+  "outcome",
+  "method",
+  "nsnp.exposure",
+  "nsnp",
+  "or",
+  "lci",
+  "uci",
+  "pval"
+)]
+
+# Save results dataframe ----
+message("Save results dataframe")
+
+data.table::fwrite(results, "output/results.csv", row.names = FALSE)
