@@ -1,3 +1,9 @@
+# Make GWAS list ----
+message("Make GWAS list")
+
+source("code/gwas.R")
+rm(list = setdiff(ls(), "gwas"))
+
 # Source functions ----
 message("Source functions")
 
@@ -6,78 +12,117 @@ lapply(
   source
 )
 
-# Make GWAS list ----
-message("Make GWAS list")
+# Make SNP map ----
+message("Make SNP map")
 
-source("code/gwas.R")
+# source("code/make_SNPmap.R")
 
 # Make empty results dataframe ----
 message("Make empty results dataframe")
 
 results <- NULL
 
-# Prepare exposure GWAS ----
-message("Prepare exposure GWAS")
+# # Prepare exposure GWAS ----
+# message("Prepare exposure GWAS")
+#
+# exp <- data.frame(
+#   SNP = character(),
+#   chr.exposure = character(),
+#   pos.exposure = character(),
+#   effect_allele.exposure = character(),
+#   other_allele.exposure = character(),
+#   eaf.exposure = character(),
+#   beta.exposure = character(),
+#   se.exposure = character(),
+#   pval.exposure = character(),
+#   samplesize.exposure = character(),
+#   exposure = character(),
+#   mr_keep.exposure = character(),
+#   pval_origin.exposure = character()
+# )
+#
+# for (i in 1:nrow(gwas)) {
+#   message(paste0(
+#     "Preparing exposure ",
+#     i,
+#     " of ",
+#     nrow(gwas),
+#     ": ",
+#     gwas[i, "phenotype"]
+#   ))
+#
+#   tmp <- prepare_gwas(
+#     map_snps = gwas[i, "map_snps"],
+#     type = "exposure",
+#     data = gwas[i, "data"],
+#     phenotype = gwas[i, "phenotype"],
+#     phenotype_short = gwas[i, "phenotype_short"],
+#     snp_col = gwas[i, "snp_col"],
+#     effect_allele_col = gwas[i, "effect_allele_col"],
+#     other_allele_col = gwas[i, "other_allele_col"],
+#     eaf_col = gwas[i, "eaf_col"],
+#     beta_col = gwas[i, "beta_col"],
+#     se_col = gwas[i, "se_col"],
+#     pval_col = gwas[i, "pval_col"],
+#     samplesize_col = gwas[i, "samplesize_col"],
+#     samplesize = gwas[i, "samplesize"],
+#     chr_col = gwas[i, "chr_col"],
+#     pos_col = gwas[i, "pos_col"],
+#     id = gwas[i, "id"],
+#     p_threshold = 5e-8,
+#     clump = TRUE,
+#     clump_kb = 10000,
+#     clump_r2 = 0.001
+#   )
+#
+#   if (!is.null(nrow(tmp))) {
+#     exp <- plyr::rbind.fill(exp, tmp)
+#   }
+# }
+#
+# data.table::fwrite(exp, "data/exposures.csv", row.names = FALSE)
 
-exp <- NULL
-exposures <- gwas[gwas$type == "exposure", ]
-exposures <- exposures[1, ]
-
-for (i in 1:nrow(exposures)) {
-  message(paste0("Preparing ", exposures[i, "phenotype"]))
-
-  tmp <- prepare_gwas(
-    type = "exposure",
-    data = exposures[i, "data"],
-    phenotype = exposures[i, "phenotype"],
-    snp_col = exposures[i, "snp_col"],
-    effect_allele_col = exposures[i, "effect_allele_col"],
-    other_allele_col = exposures[i, "other_allele_col"],
-    eaf_col = exposures[i, "eaf_col"],
-    beta_col = exposures[i, "beta_col"],
-    se_col = exposures[i, "se_col"],
-    pval_col = exposures[i, "pval_col"],
-    samplesize_col = exposures[i, "samplesize_col"],
-    samplesize = exposures[i, "samplesize"],
-    chr_col = exposures[i, "chr_col"],
-    pos_col = exposures[i, "pos_col"],
-    p_threshold = 5e-8,
-    clump = TRUE,
-    clump_kb = 10000,
-    clump_r2 = 0.001
-  )
-
-  exp <- rbind(exp, tmp)
-}
+exp <- data.table::fread("data/exposures.csv")
 
 # Prepare outcome GWAS ----
 message("Prepare outcome GWAS")
 
 out <- NULL
-outcomes <- gwas[gwas$type == "outcome", ]
 
-for (i in 1:nrow(outcomes)) {
-  message(paste0("Preparing "), outcomes[i, "phenotype"])
+for (i in 1:nrow(gwas)) {
+  message(paste0(
+    "Preparing outcome ",
+    i,
+    " of ",
+    nrow(gwas),
+    ": ",
+    gwas[i, "phenotype"]
+  ))
 
   tmp <- prepare_gwas(
+    map_snps = gwas[i, "map_snps"],
     type = "outcome",
-    data = outcomes[i, "data"],
-    phenotype = outcomes[i, "phenotype"],
-    snp_col = outcomes[i, "snp_col"],
-    effect_allele_col = outcomes[i, "effect_allele_col"],
-    other_allele_col = outcomes[i, "other_allele_col"],
-    eaf_col = outcomes[i, "eaf_col"],
-    beta_col = outcomes[i, "beta_col"],
-    se_col = outcomes[i, "se_col"],
-    pval_col = outcomes[i, "pval_col"],
-    samplesize_col = outcomes[i, "samplesize_col"],
-    samplesize = outcomes[i, "samplesize"],
-    chr_col = outcomes[i, "chr_col"],
-    pos_col = outcomes[i, "pos_col"],
-    instrument = exp$SNP
+    data = gwas[i, "data"],
+    phenotype = gwas[i, "phenotype"],
+    phenotype_short = gwas[i, "phenotype_short"],
+    snp_col = gwas[i, "snp_col"],
+    effect_allele_col = gwas[i, "effect_allele_col"],
+    other_allele_col = gwas[i, "other_allele_col"],
+    eaf_col = gwas[i, "eaf_col"],
+    beta_col = gwas[i, "beta_col"],
+    se_col = gwas[i, "se_col"],
+    pval_col = gwas[i, "pval_col"],
+    samplesize_col = gwas[i, "samplesize_col"],
+    samplesize = gwas[i, "samplesize"],
+    chr_col = gwas[i, "chr_col"],
+    pos_col = gwas[i, "pos_col"],
+    id = gwas[i, "id"],
+    instrument = unique(exp$SNP)
   )
 
-  out <- rbind(out, tmp)
+  if (!is.null(nrow(tmp))) {
+    out <- plyr::rbind.fill(out, tmp)
+  }
 }
 
 # Harmonize data ----
@@ -93,19 +138,37 @@ mr <- TwoSampleMR::mr(dat)
 # Record extra information ----
 message("Record extra information")
 
-mr$nsnp.exposure <- nrow(exp)
+tmp <- as.data.frame(table(exp$exposure))
+tmp <- dplyr::rename(tmp, "exposure" = "Var1", "nsnp.exposure" = "Freq")
+tmp$exposure <- as.character(tmp$exposure)
+mr <- merge(mr, tmp, by = "exposure", all.x = TRUE)
 
 # Add to results dataframe ----
 message("Add to results dataframe")
 
 results <- rbind(results, mr)
 
+# Add GWAS meta data ----
+message("Add GWAS meta data")
+
+results <- merge(
+  results,
+  gwas[, c("phenotype", "category", "ukb")],
+  by.x = "outcome",
+  by.y = "phenotype",
+  all.x = TRUE
+)
+
 # Format results dataframe ----
 message("Format results dataframe")
 
-results$lci <- exp(results$b - qnorm(0.975) * results$se)
-results$uci <- exp(results$b + qnorm(0.975) * results$se)
+results$b_lci <- results$b - qnorm(0.975) * results$se
+results$b_uci <- results$b + qnorm(0.975) * results$se
+results$or_lci <- exp(results$lci)
+results$or_uci <- exp(results$uci)
 results$or <- exp(results$b)
+
+results$est <- ifelse(results)
 
 results <- results[, c(
   "exposure",
@@ -113,7 +176,7 @@ results <- results[, c(
   "method",
   "nsnp.exposure",
   "nsnp",
-  "or",
+  "b",
   "lci",
   "uci",
   "pval"
