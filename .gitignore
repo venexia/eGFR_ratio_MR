@@ -46,3 +46,4 @@ data/*
 code/specify_paths.R
 .DS_Store
 /output
+.positai

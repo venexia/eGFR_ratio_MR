@@ -1,0 +1,56 @@
+format_mr_results <- function() {
+  
+  # Add GWAS meta data ----
+  message("Add GWAS meta data")
+  
+  results <- merge(
+    results,
+    gwas[, c("phenotype", "category", "ukb")],
+    by.x = "outcome",
+    by.y = "phenotype",
+    all.x = TRUE
+  )
+  
+  # Format results dataframe ----
+  message("Format results dataframe")
+  
+  results$b_lci <- results$b - qnorm(0.975) * results$se
+  results$b_uci <- results$b + qnorm(0.975) * results$se
+  results$or_lci <- exp(results$b_lci)
+  results$or_uci <- exp(results$b_uci)
+  results$or <- exp(results$b)
+  
+  results$est <- ifelse(results$category == "continuous", results$b, results$or)
+  results$lci <- ifelse(
+    results$category == "continuous",
+    results$b_lci,
+    results$or_lci
+  )
+  results$uci <- ifelse(
+    results$category == "continuous",
+    results$b_uci,
+    results$or_uci
+  )
+  results$category <- ifelse(
+    results$category == "continuous",
+    results$category,
+    "binary"
+  )
+  
+  results <- results[, c(
+    "exposure",
+    "outcome",
+    "method",
+    "nsnp.exposure",
+    "nsnp",
+    "b",
+    "b_lci",
+    "b_uci",
+    "category",
+    "est",
+    "lci",
+    "uci",
+    "pval"
+  )]
+  
+}

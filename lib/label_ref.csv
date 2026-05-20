@@ -1,0 +1,50 @@
+obs_trait,mr_trait,trait,trait_group,type
+BMI,Body mass index,Body mass index,Anthropometric,continuous
+Waist circumference,Waist circumference,Waist circumference,Anthropometric,continuous
+Hip circumference,Hip circumference,Hip circumference,Anthropometric,continuous
+HbA1C,HbA1c,HbA1c,Diabetic,continuous
+uACR,,uACR,Renal,continuous
+Number tobacco smoked,Lifetime smoking index,Lifetime smoking index / Number tobacco smoked,Lifestyle,continuous
+Mean Diastolic BP,Diastolic blood pressure,Diastolic blood pressure,Cardiovascular,continuous
+Mean Systolic BP,Systolic blood pressure,Systolic blood pressure,Cardiovascular,continuous
+AF,Atrial fibrillation,Atrial fibrillation,Cardiovascular,binary
+T2DM,Type 2 diabetes,Type 2 diabetes,Diabetic,binary
+CKD,Chronic kidney disease,Chronic kidney disease,Renal,binary
+T1DM,Type 1 diabetes,Type 1 diabetes,Diabetic,binary
+Angina,Angina pectoris,Angina,Cardiovascular,binary
+IHD,Ischaemic heart disease,Ischaemic heart disease,Cardiovascular,binary
+MI,Myocardial infarction,Myocardial infarction,Cardiovascular,binary
+Heart failure,Heart failure,Heart failure,Cardiovascular,binary
+Atherosclerosis,Coronary atherosclerosis,Atherosclerosis,Cardiovascular,binary
+AA/aortic disection,Aortic aneurysm,Aortic aneurysm,Cardiovascular,binary
+Arterial embolism or thrombosis,Arterial embolism and thrombosis,Arterial embolism and thrombosis,Cardiovascular,binary
+PE,Pulmonary embolism,Pulmonary embolism,Cardiovascular,binary
+,Alcohol consumption,Alcohol consumption,Lifestyle,continuous
+,Cerebral infarction,Cerebral infarction,Cardiovascular,binary
+,Chronic renal failure,Chronic renal failure,Renal,binary
+,Coronary artery disease,Coronary artery disease,Cardiovascular,binary
+,Hypertension,Hypertension,Cardiovascular,binary
+,Microalbuminuria,Microalbuminuria,Renal,binary
+,Leg fat-free mass (right),Leg fat-free mass (right),Anthropometric,continuous
+,Whole body fat-free mass,Whole body fat-free mass,Anthropometric,continuous
+Atrial_fibrillation_flutter,Atrial fibrillation,Atrial fibrillation,Cardiovascular,binary
+Non_insulin_diabetes,Type 2 diabetes,Type 2 diabetes,Diabetic,binary
+Renal_failure,Chronic renal failure,Chronic renal failure,Renal,binary
+Insulin_dependent_diabetes,Type 1 diabetes,Type 1 diabetes,Diabetic,binary
+Angina_pectoris,Angina pectoris,Angina,Cardiovascular,binary
+Chronic_ischaemic_heart_dis,Ischaemic heart disease,Ischaemic heart disease,Cardiovascular,binary
+Acute_myocardial_infarction,Myocardial infarction,Myocardial infarction,Cardiovascular,binary
+Heart_failure,Heart failure,Heart failure,Cardiovascular,binary
+Atherosclerosis,Coronary atherosclerosis,Atherosclerosis,Cardiovascular,binary
+Aortic_aneurysm_dissection,Aortic aneurysm,Aortic aneurysm,Cardiovascular,binary
+Arterial_embolism_thrombosis,Arterial embolism and thrombosis,Arterial embolism and thrombosis,Cardiovascular,binary
+Pulmonary_embolism,Pulmonary embolism,Pulmonary embolism,Cardiovascular,binary
+Atrial_fibrillation_flutter,Atrial fibrillation,Atrial fibrillation,Cardiovascular,binary
+norm_bmi,Body mass index,Body mass index,Anthropometric,continuous
+norm_waist_circum,Waist circumference,Waist circumference,Anthropometric,continuous
+norm_hip_circum,Hip circumference,Hip circumference,Anthropometric,continuous
+norm_glycated_haemoglobin,HbA1c,HbA1c,Diabetic,continuous
+norm_Urine_AC_ratio,uACR,uACR,Renal,continuous
+norm_num_tobacco_smoked,Lifetime smoking index,Lifetime smoking index / Number tobacco smoked,Lifestyle,continuous
+norm_dbp_mean,Diastolic blood pressure,Diastolic blood pressure,Cardiovascular,continuous
+norm_sbp_mean,Systolic blood pressure,Systolic blood pressure,Cardiovascular,continuous
