@@ -8,7 +8,8 @@ prepare_gwas <- function(
   clump, # only needed when type = "exposure"
   clump_kb, # only needed when type = "exposure"
   clump_r2, # only needed when type = "exposure"
-  instrument # only needed when type = "outcome"
+  instrument, # only needed when type = "outcome"
+  save = TRUE
 ) {
   # Check if file already exists
   message('Check if file already exists')
@@ -41,18 +42,25 @@ prepare_gwas <- function(
         message('Add sample size')
         df$samplesize <- gwas$samplesize
         samplesize_col <- "samplesize"
+      } else {
+        samplesize_col <- gwas$samplesize_col
       }
 
       if (gwas$category == "binary") {
-        message('Add ncase')
-        df$ncase <- gwas$ncase
-        ncase_col <- "ncase"
-      }
-
-      if (gwas$category == "binary") {
-        message('Add ncontrol')
-        df$ncontrol <- gwas$ncontrol
-        ncontrol_col <- "ncontrol"
+        if (gwas$ncase_col == "") {
+          message('Add ncase')
+          df$ncase <- gwas$ncase
+          ncase_col <- "ncase"
+        } else {
+          ncase_col <- gwas$ncase_col
+        }
+        if (gwas$ncontrol_col == "") {
+          message('Add ncontrol')
+          df$ncontrol <- gwas$ncontrol
+          ncontrol_col <- "ncontrol"
+        } else {
+          ncontrol_col <- gwas$ncontrol_col
+        }
       }
 
       # Format GWAS data ----
@@ -66,7 +74,7 @@ prepare_gwas <- function(
         beta = all_of(gwas$beta_col),
         se = all_of(gwas$se_col),
         pval = all_of(gwas$pval_col),
-        samplesize = all_of(gwas$samplesize_col),
+        samplesize = all_of(samplesize_col),
         chr = all_of(gwas$chr_col),
         pos = all_of(gwas$pos_col)
       )
@@ -226,9 +234,9 @@ prepare_gwas <- function(
     }
 
     # Save gwas ----
-    message('Save gwas')
 
-    if (!is.null(nrow(df))) {
+    if (!is.null(nrow(df)) & isTRUE(save)) {
+      message('Save gwas')
       data.table::fwrite(
         df,
         gwas_filename,

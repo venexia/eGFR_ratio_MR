@@ -10,11 +10,12 @@ perform_mr <- function(gwas = gwas, exp_name, out_name, sf = TRUE) {
   # Get outcome data ----
   message("Get outcome data")
 
-  out <- prepare_gwas(
+  out <- suppressMessages(prepare_gwas(
     gwas = gwas[gwas$phenotype_short == out_name, ],
     type = "outcome",
-    instrument = exp$SNP
-  )
+    instrument = exp$SNP,
+    save = FALSE
+  ))
 
   # Harmonize data ----
   message("Harmonize data")
