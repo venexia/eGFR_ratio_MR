@@ -1,5 +1,5 @@
 This directory contains the code for the Mendelian randomization element of this project.
 
-To run the analysis, use `eGFR_ratio_MR.R`.
+To run the analysis and generate results, use `eGFR_ratio_MR.R`.
 
-To recreate Figure 1 using the results from this analysis, use `plot_figure1.R`.
+To recreate the plot based on these results, use `plot_mr_figure.R`.
