@@ -1,15 +1,43 @@
-format_mr_results <- function() {
+format_mr_results <- function(filepath = "data/mr/", metadata) {
+  
+  # Get files ----
+  message("Get files")
+  
+  mr_files <- list.files(
+    path = filepath,
+    pattern = "\\.csv$",
+    full.names = TRUE
+  )
+  
+  results <- data.table::rbindlist(
+    lapply(mr_files, data.table::fread),
+    use.names = TRUE,
+    fill = TRUE
+  )
+  
   
   # Add GWAS meta data ----
   message("Add GWAS meta data")
   
   results <- merge(
     results,
-    gwas[, c("phenotype", "category", "ukb")],
+    metadata[, c("phenotype", "category", "ukb")],
     by.x = "outcome",
     by.y = "phenotype",
     all.x = TRUE
   )
+  
+  results <- dplyr::rename(results, "ukb.outcome" = "ukb")
+  
+  results <- merge(
+    results,
+    metadata[, c("phenotype", "ukb")],
+    by.x = "exposure",
+    by.y = "phenotype",
+    all.x = TRUE
+  )
+  
+  results <- dplyr::rename(results, "ukb.exposure" = "ukb")
   
   # Format results dataframe ----
   message("Format results dataframe")

@@ -5,6 +5,17 @@ source("code/utility.R")
 # Load data ----
 
 df <- vroom::vroom("output/results.csv")
+excl_phenotypes <- c(
+  
+  "Arterial embolism and thrombosi
+  s",
+  "Chronic renal fai
+  lure",
+  "Chronic kidney
+ disease"
+)
+df <- df[!(df$exposure %in% excl_ph enotypes), ]
+df <- df[!(df$outcome %in% excl_p henotypes), ]
 
 # Flip results to represent a decrease in eGFR ratio ----
 

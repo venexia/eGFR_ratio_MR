@@ -16,7 +16,7 @@ if (file.exists("data/gwas.csv")) {
 }
 
 # Make analysis list ----
-message("Make GWAS list")
+message("Make analysis list")
 
 analyses <- make_analysis_list(
   gwas = gwas,
@@ -38,12 +38,11 @@ message("Create directories")
 dir.create("data/exposure", recursive = TRUE, showWarnings = FALSE)
 dir.create("data/mr", recursive = TRUE, showWarnings = FALSE)
 
-# Prepare for analysis ----
-message("Prepare for analysis")
+# Analysis ----
+message("Analysis")
 
-j = unique(analyses$outcome)[1]
-
-for (i in unique(analyses$exposure)[1:3]) {
+# Extract instruments ----
+for (i in unique(analyses$exposure)) {
   message(paste0("Make instrument for ", i))
   suppressMessages(prepare_gwas(
     gwas = gwas[gwas$phenotype_short == i, ],
@@ -53,12 +52,25 @@ for (i in unique(analyses$exposure)[1:3]) {
     clump_kb = 10000,
     clump_r2 = 0.001
   ))
+}
 
-  message(paste0("Perform MR of ", i, " on ", j))
+# Perform MR ----
+for (i in 1:nrow(analyses)) {
+  message(paste0(
+    "Perform MR of ",
+    analyses$exposure[i],
+    " on ",
+    analyses$outcome[i]
+  ))
   tmp <- perform_mr(
     gwas = gwas,
-    exp_name = i,
-    out_name = j,
+    exp_name = analyses$exposure[i],
+    out_name = analyses$outcome[i],
     sf = TRUE
   )
 }
+
+# Combine output ----
+
+results <- format_mr_results(filepath = "data/mr/", metadata = gwas)
+data.table::fwrite(results, "output/results.csv", row.names = FALSE)

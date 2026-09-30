@@ -2,24 +2,29 @@ make_analysis_list <- function(
   gwas,
   target_traits = c("eGFRr", "eGFRcrea", "eGFRcys")
 ) {
-  # List target traits against all available outcomes
+  # All available traits
+  all_traits <- unique(gwas$phenotype_short)
+
+  # Remove target traits from the non-target pool
+  non_target_traits <- setdiff(all_traits, target_traits)
+
+  # Target traits as exposures against non-target outcomes
   exp_df <- tidyr::crossing(
     exposure = target_traits,
-    outcome = gwas$phenotype_short
+    outcome = non_target_traits
   )
 
-  # List target traits against all available exposures
+  # Non-target exposures against target traits as outcomes
   out_df <- tidyr::crossing(
-    exposure = gwas$phenotype_short,
+    exposure = non_target_traits,
     outcome = target_traits
   )
 
-  # Bind analyses lists
-  df <- rbind(exp_df, out_df)
+  # Combine analyses
+  df <- dplyr::bind_rows(exp_df, out_df)
 
-  # Remove analyses where the exposure and outcome are the same
+  # Safety check: remove any self-comparisons
   df <- df[df$exposure != df$outcome, ]
 
-  # Return analyses list
   return(df)
 }

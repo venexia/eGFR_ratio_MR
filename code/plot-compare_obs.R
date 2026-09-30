@@ -5,9 +5,7 @@ df_mr <- data.table::fread("output/results.csv", data.table = FALSE)
 df_mr <- df_mr[
   df_mr$method %in%
     c("Inverse variance weighted", "Wald ratio") &
-    df_mr$exposure == "eGFR_ratio" &
-    !(df_mr$outcome %in%
-      c("eGFR (creatinine)", "eGFR (cystatin C)", "eGFR_ratio")),
+    df_mr$exposure == "eGFR_ratio",
   c("outcome", "est", "lci", "uci")
 ]
 

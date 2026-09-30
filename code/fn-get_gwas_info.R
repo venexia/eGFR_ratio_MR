@@ -585,7 +585,7 @@ get_gwas_info <- function() {
   # Add hypertension ----
   message("Add hypertension")
 
-  id <- "ukb-d-I9_HYPTENS"
+  id <- "ieu-b-5144"
 
   gwas[nrow(gwas) + 1, ] <- c(
     map_snps = "",

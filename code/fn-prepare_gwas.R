@@ -11,61 +11,30 @@ prepare_gwas <- function(
   instrument, # only needed when type = "outcome"
   save = TRUE
 ) {
-  # Check if file already exists
-  message('Check if file already exists')
+  # Check if file already exists ----
   gwas_filename <- paste0("data/", type, "/", gwas$phenotype_short, ".csv")
 
   if (file.exists(gwas_filename)) {
     message("Skipped. File already exists.")
     df <- data.table::fread(gwas_filename, data.table = FALSE)
   } else {
-    # Determine whether data is in IEU Open GWAS
-    message('Determine whether data is in IEU Open GWAS')
-
     if (gwas$id != "") {
-      # Extract from IEU Open GWAS
-      message('Extract from IEU Open GWAS')
+      # Extract from IEU Open GWAS if present ----
       if (type == "exposure") {
         df <- TwoSampleMR::extract_instruments(outcomes = gwas$id)
       } else if (type == "outcome") {
         df <- batch_extract_outcome(snp_list = instrument, outcomes = gwas$id)
       }
+      df[, colnames(df)[
+        grepl("samplesize", colnames(df)) |
+          grepl("ncase", colnames(df)) |
+          grepl("ncontrol", colnames(df))
+      ]] <- NULL
     } else {
       # Load GWAS data ----
-      message('Load GWAS data')
-
       df <- vroom::vroom(gwas$data, show_col_types = FALSE)
 
-      # Add sample sizes ----
-
-      if (gwas$samplesize_col == "") {
-        message('Add sample size')
-        df$samplesize <- gwas$samplesize
-        samplesize_col <- "samplesize"
-      } else {
-        samplesize_col <- gwas$samplesize_col
-      }
-
-      if (gwas$category == "binary") {
-        if (gwas$ncase_col == "") {
-          message('Add ncase')
-          df$ncase <- gwas$ncase
-          ncase_col <- "ncase"
-        } else {
-          ncase_col <- gwas$ncase_col
-        }
-        if (gwas$ncontrol_col == "") {
-          message('Add ncontrol')
-          df$ncontrol <- gwas$ncontrol
-          ncontrol_col <- "ncontrol"
-        } else {
-          ncontrol_col <- gwas$ncontrol_col
-        }
-      }
-
       # Format GWAS data ----
-      message('Format GWAS data')
-
       df <- dplyr::rename(
         df,
         effect_allele = all_of(gwas$effect_allele_col),
@@ -74,19 +43,11 @@ prepare_gwas <- function(
         beta = all_of(gwas$beta_col),
         se = all_of(gwas$se_col),
         pval = all_of(gwas$pval_col),
-        samplesize = all_of(samplesize_col),
         chr = all_of(gwas$chr_col),
         pos = all_of(gwas$pos_col)
       )
 
-      if (gwas$category == "binary") {
-        df <- dplyr::rename(
-          df,
-          ncase = all_of(ncase_col),
-          ncontrol = all_of(ncontrol_col)
-        )
-      }
-
+      # Format SNP col -----
       if (gwas$snp_col != "") {
         df <- dplyr::rename(
           df,
@@ -94,30 +55,23 @@ prepare_gwas <- function(
         )
       }
 
-      # Convert to numeric
-      cols <- c("eaf", "beta", "se", "pval", "samplesize")
-      if (gwas$category == "binary") {
-        cols <- c(cols, "ncase", "ncontrol")
-      }
+      # Convert to numeric ----
+      cols <- c("eaf", "beta", "se", "pval")
       df[cols] <- lapply(df[cols], as.numeric)
 
-      # Map SNPs ----
+      # If applicable: map SNPs ----
 
       if (gwas$map_snps != "") {
-        # Identify map variables ----
-        message('Identify map variables')
-
+        ## Identify map variables ----
         map_snps <- strsplit(gwas$map_snps, ";")[[1]]
 
-        # Load SNP map ----
-        message('Load SNP map')
-
+        ## Load SNP map ----
         map <- vroom::vroom(
           "raw/SNPmap.csv"
         )
 
         if (type == "outcome") {
-          # Restrict SNP map to SNPs in instrument ----
+          ## Restrict SNP map to SNPs in instrument ----
           message('Restrict SNP map to SNPs in instrument')
           map <- map[map$SNP %in% instrument, ]
           message(paste0("Map contains "), nrow(map), " SNPs")
@@ -125,15 +79,12 @@ prepare_gwas <- function(
 
         n_orig <- nrow(df)
 
-        # Map SNPs ----
-        message('Map SNPs')
+        ## Map SNPs ----
         df <- merge(df, map, by = map_snps)
         message(paste0(nrow(df), " / ", n_orig, " mapped!"))
       }
 
       # Reformat data ----
-      message('Reformat data')
-
       df <- TwoSampleMR::format_data(
         df,
         type = type,
@@ -144,105 +95,112 @@ prepare_gwas <- function(
         beta_col = "beta",
         se_col = "se",
         pval_col = "pval",
-        samplesize_col = "samplesize",
-        ncase = "ncase",
-        ncontrol = "ncontrol",
         chr_col = "chr",
         pos_col = "pos"
       )
 
-      # Exposure specific preparations ----
-
+      # If applicable: exposure specific preparations ----
       if (type == "exposure") {
-        # Check necessary instrument info is present ----
-        message('Check necessary instrument info is present')
-
+        # Restrict to bialleic SNPs with known effect estimates and p-values ----
         df <- df[
-          df$pval.exposure < p_threshold &
-            !is.na(df$pval.exposure) &
+          !is.na(df$pval.exposure) &
             !is.na(df$beta.exposure) &
             nchar(df$effect_allele.exposure) == 1 &
             nchar(df$other_allele.exposure) == 1,
         ]
 
-        if (nrow(df) > 0) {
-          # Clump instrument ----
-          message('Clump instrument')
+        if (sum(df$pval.exposure < 5e-8) > 0) {
+          # Restrict to genome-wide significant SNPs ----
 
-          if (isTRUE(clump)) {
-            df <- TwoSampleMR::clump_data(
-              df,
-              clump_kb = clump_kb,
-              clump_r2 = clump_r2
-            )
+          df <- df[
+            df$pval.exposure < p_threshold,
+          ]
+
+          if (nrow(df) > 0) {
+            # Clump instrument ----
+            if (isTRUE(clump)) {
+              df <- TwoSampleMR::clump_data(
+                df,
+                clump_kb = clump_kb,
+                clump_r2 = clump_r2
+              )
+            }
           }
+        } else {
+          message("No genome-wide significant SNPs")
+          df <- data.frame()
         }
       }
 
-      # Outcome specific preparations ----
-
+      # If applicable: outcome specific preparations ----
       if (type == "outcome") {
         # Filter to instrument SNPs ----
-        message('Filter to instrument SNPs')
         df <- df[df$SNP %in% instrument, ]
       }
     }
 
-    # Standardize betas and SEs
+    if (nrow(df) > 0) {
+      # If applicable: standardize betas and SEs ---- ----
 
-    SD <- as.numeric(gwas$SD)
+      SD <- as.numeric(gwas$SD)
 
-    if (!is.na(SD)) {
-      message('Standardize betas and SEs')
+      if (!is.na(SD)) {
+        message('Standardize betas and SEs')
 
-      if (type == "exposure") {
-        df$beta.exposure <- df$beta.exposure / SD
-        df$se.exposure <- df$se.exposure / SD
+        if (type == "exposure") {
+          df$beta.exposure <- df$beta.exposure / SD
+          df$se.exposure <- df$se.exposure / SD
+        }
+
+        if (type == "outcome") {
+          df$beta.outcome <- df$beta.outcome / SD
+          df$se.outcome <- df$se.outcome / SD
+        }
       }
 
-      if (type == "outcome") {
-        df$beta.outcome <- df$beta.outcome / SD
-        df$se.outcome <- df$se.outcome / SD
+      # Label phenotype ---- ----
+      if (type == "exposure" & nrow(df) > 0) {
+        df$exposure <- gwas$phenotype
+      }
+
+      if (type == "outcome" & nrow(df) > 0) {
+        df$outcome <- gwas$phenotype
+      }
+
+      # Add samplesizes ---- ----
+
+      samplesize_col <- paste0("samplesize.", type)
+      if (!(samplesize_col %in% colnames(df))) {
+        message("Add ", samplesize_col)
+        df[[samplesize_col]] <- gwas$samplesize
+      }
+
+      if (gwas$category == "binary") {
+        ncase_col <- paste0("ncase.", type)
+        ncontrol_col <- paste0("ncontrol.", type)
+
+        if (!(ncase_col %in% colnames(df))) {
+          message("Add ", ncase_col)
+          df[[ncase_col]] <- gwas$ncase
+        }
+
+        if (!(ncontrol_col %in% colnames(df))) {
+          message("Add ", ncontrol_col)
+          df[[ncontrol_col]] <- gwas$ncontrol
+        }
       }
     }
+  }
 
-    # Label phenotype ----
-    message('Label phenotype')
+  # Save gwas ----
 
-    if (type == "exposure" & nrow(df) > 0) {
-      df$exposure <- gwas$phenotype
-    }
-
-    if (type == "outcome" & nrow(df) > 0) {
-      df$outcome <- gwas$phenotype
-    }
-
-    # Remove irrelevant columns ----
-    message('Remove irrelevant columns')
-
-    if (gwas$category == "continuous") {
-      rm_cols <- intersect(
-        colnames(df),
-        c(
-          "ncase.exposure",
-          "ncontrol.exposure",
-          "ncase.outcome",
-          "ncontrol.outcome"
-        )
-      )
-      df[, rm_cols] <- NULL
-    }
-
-    # Save gwas ----
-
-    if (!is.null(nrow(df)) & isTRUE(save)) {
-      message('Save gwas')
-      data.table::fwrite(
-        df,
-        gwas_filename,
-        row.names = FALSE
-      )
-    }
+  if (!is.null(nrow(df)) & isTRUE(save)) {
+    message('Save gwas')
+    data.table::fwrite(
+      df,
+      gwas_filename,
+      row.names = FALSE
+    )
   }
 
   # Return gwas ----
